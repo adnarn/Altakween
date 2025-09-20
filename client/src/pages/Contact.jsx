@@ -1,5 +1,6 @@
 // client/src/pages/Contact.jsx
 import React, { useState } from 'react';
+import PageLayout from '../components/PageLayout';
 import { Mail, Phone, MapPin, Send, Clock, CheckCircle } from 'lucide-react';
 
 const Contact = () => {
@@ -66,7 +67,7 @@ const Contact = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50">
+    <PageLayout className="bg-gradient-to-b from-blue-50 to-indigo-50">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-20">
         <div className="container mx-auto px-4 text-center">
@@ -302,7 +303,7 @@ const Contact = () => {
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 };
 

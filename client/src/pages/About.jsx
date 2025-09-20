@@ -1,5 +1,6 @@
 // client/src/pages/About.jsx
 import React from 'react';
+import PageLayout from '../components/PageLayout';
 import { Users, Globe, Award, Heart } from 'lucide-react';
 
 const About = () => {
@@ -22,7 +23,7 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50">
+    <PageLayout className="bg-gradient-to-b from-blue-50 to-indigo-50">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-20">
         <div className="container mx-auto px-4 text-center">
@@ -108,12 +109,9 @@ const About = () => {
           <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
             Join thousands of satisfied travelers who have discovered the world with ALTAKWEEN.
           </p>
-          <button className="bg-white text-blue-600 px-8 py-3 rounded-full font-medium hover:bg-blue-50 transition-colors duration-300">
-            Get Started
-          </button>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 };
 

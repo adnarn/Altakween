@@ -3,6 +3,7 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 import Hero from '../components/Hero';
 import HowItWorks from '../components/HowItWorks';
+import PageLayout from '../components/PageLayout';
 import SaveForUmrahPlan from '../components/SaveForUmrahPlan';
 import Packages from '../components/Packages';
 import Airlines from '../components/Airlines';
@@ -19,7 +20,7 @@ const Home = () => {
   }, []);
 
   return (
-    <>
+    <PageLayout>
       <Hero />
       <Packages />
       <HowItWorks />
@@ -27,7 +28,7 @@ const Home = () => {
       <Airlines />
       <Testimonials />
       <CTA />
-    </>
+    </PageLayout>
   );
 };
 

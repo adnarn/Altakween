@@ -1,5 +1,6 @@
 // client/src/pages/Services.jsx
-import React, { useState } from 'react';
+import React from 'react';
+import PageLayout from '../components/PageLayout';
 import { Link } from 'react-router-dom';
 import { Plane, Hotel, MapPin, Star, Clock, Users, ArrowRight } from 'lucide-react';
 
@@ -97,7 +98,7 @@ const Services = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 pt-20">
+    <PageLayout className="bg-gradient-to-b from-blue-50 to-indigo-50">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-20">
         <div className="container mx-auto px-4 text-center">
@@ -234,7 +235,7 @@ const Services = () => {
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 };
 

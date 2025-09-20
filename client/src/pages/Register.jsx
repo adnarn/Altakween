@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Mail, Lock, Eye, EyeOff, Phone, MapPin, UserPlus } from 'lucide-react';
+import PageLayout from '../components/PageLayout';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+    <PageLayout className="bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
       <div className="w-full max-w-3xl">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
           <div className="md:flex">
@@ -350,7 +351,7 @@ const Register = () => {
           </div>
         </div>
       </div>
-    </div>
+    </PageLayout>
   );
 };
 
