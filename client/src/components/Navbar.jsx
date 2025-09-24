@@ -10,6 +10,7 @@ const Navbar = () => {
   const profileRef = useRef(null);
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
+  const userRole = currentUser?.role;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -120,6 +121,14 @@ const Navbar = () => {
                     >
                       My Bookings
                     </NavDropdownItem>
+                    {userRole === 'admin' && 
+                    <NavDropdownItem
+                      to="/admin"
+                      icon={<Package className="h-5 w-5" />}
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      Admin
+                    </NavDropdownItem>}
                     <div className="border-t border-gray-100 my-1"></div>
                     <button
                       onClick={handleLogout}
@@ -213,6 +222,10 @@ const Navbar = () => {
                 <MobileNavLink to="/bookings" onClick={() => setIsOpen(false)}>
                   My Bookings
                 </MobileNavLink>
+                {userRole === 'admin' && 
+                <MobileNavLink to="/admin" onClick={() => setIsOpen(false)}>
+                  Admin
+                </MobileNavLink>}
                 <button
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2 text-base font-medium text-red-600 hover:bg-red-50 rounded-md"
