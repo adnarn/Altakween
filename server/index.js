@@ -2,13 +2,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
-const userRouter = require('./src/routes/userRoutes');
-const cookieParser = require('cookie-parser');
-const authRouter = require('./src/routes/auth.js');
-const packageRouter = require('./src/routes/packageRouter.js');
-const bookingRouter = require('./src/routes/bookingRouter.js');
 
 // Initialize dotenv for environment variables
 dotenv.config();
@@ -16,54 +10,98 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());  // Use express.json() to parse JSON bodies
-app.use(cookieParser());
-
-// Configure CORS for production and development
-const allowedOrigins = [
-  'http://localhost:5173',
-  'https://your-frontend-domain.vercel.app' // Replace with your actual frontend domain
-];
-
+// Middleware
+app.use(express.json());
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
+  origin: ['http://localhost:5173', 'https://your-frontend-app.vercel.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Handle preflight requests
-app.options('*', cors());
+// MongoDB connection - cached connection for serverless
+let cachedDb = null;
+
+const connectToDatabase = async () => {
+  if (cachedDb) {
+    console.log('Using cached database connection');
+    return cachedDb;
+  }
+
+  try {
+    console.log('Connecting to MongoDB...');
+    const MONGO_URI = process.env.MONGO_URI;
+    
+    if (!MONGO_URI) {
+      throw new Error('MongoDB URI is not defined in environment variables');
+    }
+
+    const connection = await mongoose.connect(MONGO_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      bufferCommands: false,
+      bufferMaxEntries: 0,
+    });
+
+    cachedDb = connection;
+    console.log('Connected to MongoDB successfully');
+    return connection;
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error;
+  }
+};
+
+// Middleware to handle database connection for each request
+app.use(async (req, res, next) => {
+  try {
+    await connectToDatabase();
+    next();
+  } catch (error) {
+    console.error('Database connection failed:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Database connection failed',
+      error: process.env.NODE_ENV === 'production' ? {} : error.message
+    });
+  }
+});
 
 // Test route
 app.get('/', (req, res) => {
-  console.log('Root endpoint hit');
-  res.json({ message: 'Server is running on Vercel' });
+  res.json({ 
+    message: 'Server is running on Vercel',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
-app.get('/api', (req, res) => {
-  res.json({ message: 'API is working correctly', timestamp: new Date().toISOString() });
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'OK',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Use the routers
+// Import routers
+const userRouter = require('./src/routes/userRoutes');
+const authRouter = require('./src/routes/auth');
+const packageRouter = require('./src/routes/packageRouter');
+const bookingRouter = require('./src/routes/bookingRouter');
+
+// Use routers
 app.use('/api/users', userRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/packages', packageRouter);
 app.use('/api/bookings', bookingRouter);
 
-// Log all requests
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
-  next();
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found'
+  });
 });
 
 // Error handling middleware
@@ -76,45 +114,17 @@ app.use((error, req, res, next) => {
   });
 });
 
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found'
-  });
-});
-
-// MongoDB connection
-const MONGO_URI = process.env.MONGO_URI;
-
-if (!MONGO_URI) {
-  console.error('MongoDB URI is not defined in environment variables');
-  process.exit(1);
-}
-
-// Connect to MongoDB
-const connectDB = async () => {
-  try {
-    console.log('Connecting to MongoDB...');
-    await mongoose.connect(MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('Connected to MongoDB successfully');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
-  }
-};
-
-// For Vercel serverless functions, we need to export the app
+// Export the app for Vercel
 module.exports = app;
 
-// For local development, start the server normally
+// Only start server if not in Vercel environment
 if (require.main === module) {
-  connectDB().then(() => {
+  connectToDatabase().then(() => {
     app.listen(PORT, () => {
       console.log(`Server is running at port ${PORT}`);
     });
+  }).catch(error => {
+    console.error('Failed to start server:', error);
+    process.exit(1);
   });
 }
