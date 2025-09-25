@@ -1,75 +1,68 @@
 "use client"
 
-import { useState } from "react"
-import {
-  FaSearch,
-  FaPlus,
-  FaEdit,
-  FaTrash,
-  FaFilter,
-  FaEllipsisV,
-  FaBoxOpen,
-} from "react-icons/fa"
+import { useState, useEffect, useContext } from "react"
+import ApiContext, { useApi } from "../../contexts/ApiContext"
+import { FaSearch, FaPlus, FaEdit, FaTrash, FaBoxOpen, FaTimes, FaSave, FaSpinner } from "react-icons/fa"
 
 const Packages = () => {
+  const { get, post, put, del } = useApi()
+  const [packages, setPackages] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [currentPage, setCurrentPage] = useState(1)
+  const [showModal, setShowModal] = useState(false)
+  const [modalMode, setModalMode] = useState("add") // "add" or "edit"
+  const [selectedPackage, setSelectedPackage] = useState(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [packageToDelete, setPackageToDelete] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
   const packagesPerPage = 5
 
-  const packages = [
-    {
-      id: 1,
-      title: "Basic Travel Package",
-      description: "Includes flights and hotel for 3 days.",
-      category: "Travel",
-      price: "$300",
-      status: "active",
-      lastUpdated: "2 days ago",
-    },
-    {
-      id: 2,
-      title: "Premium Vacation",
-      description: "Luxury hotel and full-board meals.",
-      category: "Vacation",
-      price: "$1200",
-      status: "active",
-      lastUpdated: "1 week ago",
-    },
-    {
-      id: 3,
-      title: "Budget Tour",
-      description: "Affordable package with basic amenities.",
-      category: "Tour",
-      price: "$150",
-      status: "inactive",
-      lastUpdated: "3 weeks ago",
-    },
-    {
-      id: 4,
-      title: "Business Trip Package",
-      description: "Includes flights, hotel, and meeting spaces.",
-      category: "Business",
-      price: "$800",
-      status: "active",
-      lastUpdated: "5 days ago",
-    },
-    {
-      id: 5,
-      title: "Family Vacation",
-      description: "Includes family activities and accommodation.",
-      category: "Vacation",
-      price: "$1000",
-      status: "inactive",
-      lastUpdated: "1 month ago",
-    },
-  ]
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    category: "",
+    location: "",
+    price: "",
+    duration: "",
+    rating: 0,
+    reviews: 0,
+    image: "",
+    featured: false,
+    includes: [],
+    overview: "",
+    highlights: [],
+    itinerary: [],
+    inclusions: [],
+    exclusions: [],
+  })
+
+  // Fetch packages from API
+  const fetchPackages = async () => {
+    try {
+      setLoading(true)
+      const response = await get("/packages")
+      setPackages(response.data || [])
+      setError(null)
+    } catch (err) {
+      console.error("Error fetching packages:", err)
+      setError("Failed to fetch packages")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchPackages()
+  }, [])
 
   // Filter packages based on search and category
   const filteredPackages = packages.filter((pkg) => {
     const matchesSearch =
-      pkg.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      pkg.description.toLowerCase().includes(searchTerm.toLowerCase())
+      pkg.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pkg.description?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = selectedCategory === "all" || pkg.category === selectedCategory
     return matchesSearch && matchesCategory
   })
@@ -83,6 +76,128 @@ const Packages = () => {
   // Change page
   const paginate = (pageNumber) => setCurrentPage(pageNumber)
 
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }))
+  }
+
+  // Handle array inputs (includes, highlights, etc.)
+  const handleArrayInput = (field, value) => {
+    const items = value
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item)
+    setFormData((prev) => ({
+      ...prev,
+      [field]: items,
+    }))
+  }
+
+  // Open add modal
+  const openAddModal = () => {
+    setModalMode("add")
+    setFormData({
+      title: "",
+      description: "",
+      category: "",
+      location: "",
+      price: "",
+      duration: "",
+      rating: 0,
+      reviews: 0,
+      image: "",
+      featured: false,
+      includes: [],
+      overview: "",
+      highlights: [],
+      itinerary: [],
+      inclusions: [],
+      exclusions: [],
+    })
+    setShowModal(true)
+  }
+
+  // Open edit modal
+  const openEditModal = (pkg) => {
+    setModalMode("edit")
+    setSelectedPackage(pkg)
+    setFormData({
+      title: pkg.title || "",
+      description: pkg.description || "",
+      category: pkg.category || "",
+      location: pkg.location || "",
+      price: pkg.price || "",
+      duration: pkg.duration || "",
+      rating: pkg.rating || 0,
+      reviews: pkg.reviews || 0,
+      image: pkg.image || "",
+      featured: pkg.featured || false,
+      includes: pkg.includes || [],
+      overview: pkg.overview || "",
+      highlights: pkg.highlights || [],
+      itinerary: pkg.itinerary || [],
+      inclusions: pkg.inclusions || [],
+      exclusions: pkg.exclusions || [],
+    })
+    setShowModal(true)
+  }
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setSubmitting(true)
+
+    try {
+      const packageData = {
+        ...formData,
+        price: Number.parseFloat(formData.price) || 0,
+        rating: Number.parseFloat(formData.rating) || 0,
+        reviews: Number.parseInt(formData.reviews) || 0,
+      }
+
+      if (modalMode === "add") {
+        await post("/packages", packageData)
+      } else {
+        await put(`/packages/${selectedPackage._id}`, packageData)
+      }
+
+      await fetchPackages()
+      setShowModal(false)
+      setError(null)
+    } catch (err) {
+      console.error("Error saving package:", err)
+      setError(`Failed to ${modalMode} package`)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // Handle delete
+  const handleDelete = async () => {
+    if (!packageToDelete) return
+
+    try {
+      await del(`/packages/${packageToDelete._id}`)
+      await fetchPackages()
+      setShowDeleteModal(false)
+      setPackageToDelete(null)
+      setError(null)
+    } catch (err) {
+      console.error("Error deleting package:", err)
+      setError("Failed to delete package")
+    }
+  }
+
+  // Open delete confirmation
+  const openDeleteModal = (pkg) => {
+    setPackageToDelete(pkg)
+    setShowDeleteModal(true)
+  }
+
   const PackageCard = ({ pkg }) => (
     <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-3">
@@ -91,14 +206,17 @@ const Packages = () => {
           <p className="text-xs text-gray-500 truncate">{pkg.description}</p>
         </div>
         <div className="flex space-x-1">
-          <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+          <button
+            onClick={() => openEditModal(pkg)}
+            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+          >
             <FaEdit className="w-4 h-4" />
           </button>
-          <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+          <button
+            onClick={() => openDeleteModal(pkg)}
+            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+          >
             <FaTrash className="w-4 h-4" />
-          </button>
-          <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-            <FaEllipsisV className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -111,37 +229,56 @@ const Packages = () => {
           </span>
         </div>
         <div>
-          <span className="text-gray-500 block mb-1">Status</span>
+          <span className="text-gray-500 block mb-1">Featured</span>
           <span
             className={`px-2 py-1 inline-flex text-xs leading-4 font-medium rounded-full ${
-              pkg.status === "active"
-                ? "bg-green-100 text-green-800"
-                : "bg-gray-100 text-gray-800"
+              pkg.featured ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
             }`}
           >
-            {pkg.status.charAt(0).toUpperCase() + pkg.status.slice(1)}
+            {pkg.featured ? "Yes" : "No"}
           </span>
         </div>
       </div>
 
       <div className="mt-3 pt-3 border-t border-gray-100 flex justify-between text-xs">
-        <span className="text-gray-500">Price: {pkg.price}</span>
-        <span className="text-gray-500">Updated: {pkg.lastUpdated}</span>
+        <span className="text-gray-500">Price: ${pkg.price}</span>
+        <span className="text-gray-500">Rating: {pkg.rating}/5</span>
       </div>
     </div>
   )
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <FaSpinner className="animate-spin h-8 w-8 text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading packages...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-800">{error}</p>
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <div className="min-w-0 flex-1">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Packages</h1>
-            <p className="mt-1 text-sm text-gray-600">Manage your packages and their details</p>
+            <p className="mt-1 text-sm text-gray-600">Manage your travel packages and their details</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
-            <button className="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl">
+            <button
+              onClick={openAddModal}
+              className="inline-flex items-center justify-center px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
               <FaPlus className="w-4 h-4 mr-2" />
               Add New Package
             </button>
@@ -170,15 +307,10 @@ const Packages = () => {
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
                 <option value="all">All Categories</option>
-                <option value="Travel">Travel</option>
-                <option value="Vacation">Vacation</option>
-                <option value="Tour">Tour</option>
-                <option value="Business">Business</option>
+                <option value="pilgrimage">Pilgrimage</option>
+                <option value="travel">Travel</option>
+                <option value="featured">Featured</option>
               </select>
-              <button className="inline-flex items-center justify-center px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors text-sm font-medium">
-                <FaFilter className="w-4 h-4 mr-2" />
-                Filter
-              </button>
             </div>
           </div>
         </div>
@@ -193,7 +325,7 @@ const Packages = () => {
             </div>
             <div className="p-4 space-y-4">
               {currentPackages.length > 0 ? (
-                currentPackages.map((pkg) => <PackageCard key={pkg.id} pkg={pkg} />)
+                currentPackages.map((pkg) => <PackageCard key={pkg._id} pkg={pkg} />)
               ) : (
                 <div className="text-center py-12">
                   <FaBoxOpen className="mx-auto h-12 w-12 text-gray-400" />
@@ -211,46 +343,50 @@ const Packages = () => {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Last Updated</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Rating</th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase">Featured</th>
                     <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentPackages.length > 0 ? (
                     currentPackages.map((pkg) => (
-                      <tr key={pkg.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {pkg.title}
+                      <tr key={pkg._id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{pkg.title}</div>
+                            <div className="text-sm text-gray-500 truncate max-w-xs">{pkg.description}</div>
+                          </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{pkg.description}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{pkg.category}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{pkg.price}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{pkg.location}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${pkg.price}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{pkg.rating}/5</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              pkg.status === "active"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-gray-100 text-gray-800"
+                              pkg.featured ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
                             }`}
                           >
-                            {pkg.status}
+                            {pkg.featured ? "Yes" : "No"}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{pkg.lastUpdated}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <div className="flex justify-end space-x-2">
-                            <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                            <button
+                              onClick={() => openEditModal(pkg)}
+                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            >
                               <FaEdit className="w-4 h-4" />
                             </button>
-                            <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                            <button
+                              onClick={() => openDeleteModal(pkg)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
                               <FaTrash className="w-4 h-4" />
-                            </button>
-                            <button className="p-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                              <FaEllipsisV className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -329,6 +465,250 @@ const Packages = () => {
           )}
         </div>
       </div>
+
+      {/* Add/Edit Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {modalMode === "add" ? "Add New Package" : "Edit Package"}
+                </h2>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg transition-colors"
+                >
+                  <FaTimes className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Select Category</option>
+                    <option value="pilgrimage">Pilgrimage</option>
+                    <option value="travel">Travel</option>
+                    <option value="featured">Featured</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Location *</label>
+                  <input
+                    type="text"
+                    name="location"
+                    value={formData.location}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Price *</label>
+                  <input
+                    type="number"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleInputChange}
+                    required
+                    min="0"
+                    step="0.01"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Duration</label>
+                  <input
+                    type="text"
+                    name="duration"
+                    value={formData.duration}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 7 days"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+                  <input
+                    type="number"
+                    name="rating"
+                    value={formData.rating}
+                    onChange={handleInputChange}
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Reviews Count</label>
+                  <input
+                    type="number"
+                    name="reviews"
+                    value={formData.reviews}
+                    onChange={handleInputChange}
+                    min="0"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
+                  <input
+                    type="url"
+                    name="image"
+                    value={formData.image}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description *</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  required
+                  rows="3"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Overview</label>
+                <textarea
+                  name="overview"
+                  value={formData.overview}
+                  onChange={handleInputChange}
+                  rows="4"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Includes (comma-separated)</label>
+                <textarea
+                  value={formData.includes.join(", ")}
+                  onChange={(e) => handleArrayInput("includes", e.target.value)}
+                  rows="2"
+                  placeholder="Flight tickets, Hotel accommodation, Meals"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Highlights (comma-separated)</label>
+                <textarea
+                  value={formData.highlights.join(", ")}
+                  onChange={(e) => handleArrayInput("highlights", e.target.value)}
+                  rows="2"
+                  placeholder="Visit holy sites, Professional guide, Group activities"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    name="featured"
+                    checked={formData.featured}
+                    onChange={handleInputChange}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-gray-700">Featured Package</span>
+                </label>
+              </div>
+
+              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submitting ? (
+                    <>
+                      <FaSpinner className="animate-spin w-4 h-4 mr-2" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <FaSave className="w-4 h-4 mr-2" />
+                      {modalMode === "add" ? "Add Package" : "Update Package"}
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <FaTrash className="h-6 w-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Delete Package</h3>
+              <p className="text-sm text-gray-500 mb-6">
+                Are you sure you want to delete "{packageToDelete?.title}"? This action cannot be undone.
+              </p>
+              <div className="flex justify-center space-x-4">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

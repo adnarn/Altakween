@@ -98,6 +98,7 @@ import AdminLayout from './components/admin/AdminLayout';
 import { ClientLayout } from './components/ClientLayout';
 import Packages from './pages/admin/Packages';
 import Bookings from './components/admin/Bookings';
+import BookingsPage from './pages/Bookings'
 
 
 function App() {
@@ -143,6 +144,22 @@ function App() {
                 </ClientLayout>
               }
             />
+            <Route
+                path="/package/:id"
+                element={
+                  <ClientLayout>
+                    <PackageDetails />
+                  </ClientLayout>
+                }
+              />
+            <Route
+                path="/bookings"
+                element={
+                  <ClientLayout>
+                    <BookingsPage />
+                  </ClientLayout>
+                }
+              />
 
             {/* Admin Routes */}
             <Route

@@ -7,6 +7,8 @@ const mongoose = require('mongoose');
 const userRouter = require('./src/routes/userRoutes');
 const cookieParser = require('cookie-parser');
 const authRouter = require('./src/routes/auth.js');
+const packageRouter = require('./src/routes/packageRouter.js');
+const bookingRouter = require('./src/routes/bookingRouter.js')
 
 // Initialize dotenv for environment variables
 dotenv.config();
@@ -37,6 +39,8 @@ app.get('/', (req, res) => {
 // Use the userRouter for user-related routes
 app.use('/api/users', userRouter);
 app.use('/api/auth', authRouter)
+app.use('/api/packages', packageRouter)
+app.use('/api/bookings', bookingRouter)
 
 // Log all requests
 app.use((req, res, next) => {
