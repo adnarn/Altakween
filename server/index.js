@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const connectDB= require('./src/config/dbConfig'); // ✅ import before use
 
 dotenv.config();
 
@@ -15,20 +16,6 @@ app.use(cors({
   credentials: true,
 }));
 
-// ✅ MongoDB Connection (connect once)
-const connectDB = async () => {
-  try {
-    const MONGO_URI = process.env.MONGO_URI;
-    if (!MONGO_URI) throw new Error('❌ MONGO_URI not defined in .env');
-
-    await mongoose.connect(MONGO_URI);
-    console.log('✅ MongoDB connected');
-  } catch (error) {
-    console.error('❌ MongoDB connection error:', error.message);
-    process.exit(1);
-  }
-};
-
 // ✅ Test route
 app.get('/', (req, res) => {
   res.json({
@@ -38,7 +25,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// ✅ Health check
+// ✅ Health check route
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
@@ -46,7 +33,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ✅ Routes (import after DB connect)
+// ✅ Routes
 const userRouter = require('./src/routes/userRoutes');
 const authRouter = require('./src/routes/auth');
 const packageRouter = require('./src/routes/packageRouter');
@@ -79,7 +66,7 @@ app.use((err, req, res, next) => {
 // ✅ Export for Vercel
 module.exports = app;
 
-// ✅ Localhost mode
+// ✅ Localhost mode (connect DB and start server)
 if (require.main === module) {
   connectDB().then(() => {
     const PORT = process.env.PORT || 3000;
