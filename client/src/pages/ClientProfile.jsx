@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { User, Mail, Phone, MapPin, Edit, CalendarCheck, KeyRound } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 import { useApi } from "../contexts/ApiContext"
+import PageLayout from "../components/PageLayout"
 
 const ClientProfile = () => {
   const { user: authUser, loading: authLoading } = useAuth()
@@ -101,6 +102,7 @@ const ClientProfile = () => {
   }
 
   return (
+    <PageLayout>
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-5xl mx-auto space-y-10">
         <div className="text-center">
@@ -180,6 +182,7 @@ const ClientProfile = () => {
         )}
       </div>
     </div>
+    </PageLayout>
   )
 }
 
