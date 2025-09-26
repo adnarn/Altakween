@@ -11,7 +11,7 @@ export const useApi = () => {
 }
 
 export const ApiProvider = ({ children }) => {
-  const API_BASE_URL = "https://altakween-4nng-qsj6gwlpp-dexcoders-projects.vercel.app/api" // Update to match your backend port
+  const API_BASE_URL = "https://altakween-4nng.vercel.app/api" // Update to match your backend port
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
