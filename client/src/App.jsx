@@ -99,6 +99,7 @@ import { ClientLayout } from './components/ClientLayout';
 import Packages from './pages/admin/Packages';
 import Bookings from './components/admin/Bookings';
 import BookingsPage from './pages/Bookings'
+import ClientProfile from './pages/ClientProfile';
 
 
 function App() {
@@ -157,6 +158,14 @@ function App() {
                 element={
                   <ClientLayout>
                     <BookingsPage />
+                  </ClientLayout>
+                }
+              />
+            <Route
+                path="/profile"
+                element={
+                  <ClientLayout>
+                    <ClientProfile />
                   </ClientLayout>
                 }
               />

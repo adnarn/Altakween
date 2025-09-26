@@ -11,7 +11,8 @@ export const useApi = () => {
 }
 
 export const ApiProvider = ({ children }) => {
-  const API_BASE_URL = "https://altakween-4nng.vercel.app/api" // Update to match your backend port
+  // const API_BASE_URL = "https://altakween-4nng.vercel.app/api" // Update to match your backend port
+  const API_BASE_URL = "http://localhost:8081/api" // Update to match your backend port
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -32,14 +33,27 @@ export const ApiProvider = ({ children }) => {
           const storedUser = localStorage.getItem("altaqween_user");
           if (storedUser) {
             const user = JSON.parse(storedUser);
+            console.log('Stored user data:', user); // Debug log
+            
+            // Get token directly from user object
             token = user.token;
+            
+            if (!token) {
+              console.warn("No token found in user object");
+              console.warn("Available user properties:", Object.keys(user));
+            }
+          } else {
+            console.warn("No user data found in localStorage");
           }
         } catch (err) {
           console.error("Failed to read user from localStorage:", err);
         }
   
         if (token) {
+          console.log('Using token:', token.substring(0, 10) + '...'); // Log first 10 chars of token
           headers["Authorization"] = `Bearer ${token}`;
+        } else {
+          console.warn("No authentication token available");
         }
   
         const response = await fetch(`${API_BASE_URL}${endpoint}`, {
