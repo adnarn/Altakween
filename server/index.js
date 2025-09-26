@@ -1,8 +1,9 @@
 // index.js
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
+const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const connectDB= require('./config/dbConfig'); // ✅ import before use
 
 dotenv.config();
 
@@ -10,40 +11,68 @@ const app = express();
 
 // ✅ Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://altakween.vercel.app'],
+  credentials: true,
+}));
 
-// ✅ MongoDB Connection
-const MONGO_URI = process.env.MONGO_URI;
-
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('✅ MongoDB Connected Successfully'))
-  .catch(err => {
-    console.error('❌ MongoDB Connection Failed:', err.message);
-  });
-
-// ✅ Test Route
+// ✅ Test route
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'Server is running 🚀',
-    mongoStatus: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-  });
-});
-
-// ✅ Health Route
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    mongo: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    message: 'Server is running on Vercel 🚀',
     time: new Date().toISOString(),
   });
 });
 
-// ✅ Export app for Vercel
+// ✅ Health check route
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+  });
+});
+
+// ✅ Routes
+const userRouter = require('./routes/userRoutes');
+const authRouter = require('./routes/auth');
+const packageRouter = require('./routes/packageRouter');
+const bookingRouter = require('./routes/bookingRouter');
+
+// ✅ Use routes
+app.use('/api/users', userRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/packages', packageRouter);
+app.use('/api/bookings', bookingRouter);
+
+// ✅ 404 Handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found',
+  });
+});
+
+// ✅ Error Handler
+app.use((err, req, res, next) => {
+  console.error('🔥 Error:', err.message);
+  res.status(500).json({
+    success: false,
+    message: 'Internal Server Error',
+    error: process.env.NODE_ENV === 'production' ? {} : err.message,
+  });
+});
+
+// ✅ Export for Vercel
 module.exports = app;
 
-// ✅ Localhost mode (for local testing)
+// ✅ Localhost mode (connect DB and start server)
 if (require.main === module) {
-  const PORT = process.env.PORT || 8081;
-  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+  connectDB().then(() => {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => console.log(`🚀 Server running at port ${PORT}`));
+  });
+} else {
+  // Connect immediately when Vercel loads the function
+  connectDB();
 }
