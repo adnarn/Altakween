@@ -93,7 +93,6 @@ import PackageDetails from './pages/PackageDetails';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import Unauthorized from './pages/Unauthorized';
 import Users from './pages/admin/Users';
-import Profile from './pages/Profile';
 import AdminLayout from './components/admin/AdminLayout';
 import { ClientLayout } from './components/ClientLayout';
 import Packages from './pages/admin/Packages';
