@@ -5,11 +5,13 @@ import { X, Calendar, Users, Home, Phone, Mail, MapPin, User, AlertCircle } from
 import { useApi } from "../contexts/ApiContext"
 import { useAuth } from "../contexts/AuthContext"
 import { toast } from "react-toastify"
+import { useNavigate } from "react-router-dom"
 
 const BookingModal = ({ package: packageData, isOpen, onClose, onBookingSuccess }) => {
   const { post } = useApi()
   const { currentUser, login } = useAuth()
   const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
   const [step, setStep] = useState(1) // 1: Traveler details, 2: Booking details, 3: Review
   const [formData, setFormData] = useState({
     // Customer Information
@@ -212,6 +214,7 @@ const BookingModal = ({ package: packageData, isOpen, onClose, onBookingSuccess 
           },
           emergencyContact: { name: "", phone: "", relationship: "" },
         })
+        navigate("/bookings")
       }
     } catch (error) {
       console.error("Booking error:", error)
