@@ -82,6 +82,7 @@ const Services = () => {
         </div>
 
         {/* Error State */}
+        <PageLayout>
         <div className="container mx-auto px-4 py-16">
           <div className="flex flex-col items-center justify-center py-20">
             <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
@@ -95,6 +96,7 @@ const Services = () => {
             </button>
           </div>
         </div>
+      </PageLayout>
       </div>
     )
   }
