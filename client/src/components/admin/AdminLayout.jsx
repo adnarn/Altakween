@@ -11,6 +11,7 @@ import {
   CreditCard,
   BarChart3,
   Settings,
+  Home
 } from "lucide-react"
 import Sidebar from "./Sidebar"
 import { useAuth } from "../../contexts/AuthContext"
@@ -29,6 +30,7 @@ const AdminLayout = ({ children }) => {
   }
 
   const navigation = [
+    { name: "Home Page", href: "/", icon: Home },
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     // { name: "Users", href: "/admin/users", icon: Users },
     { name: "Packages", href: "/admin/packages", icon: Plane },
