@@ -146,11 +146,8 @@ export const useApi = () => {
 }
 
 export const ApiProvider = ({ children }) => {
-  // Use environment variable for API base URL
-  const API_BASE_URL = process.env.NODE_ENV === 'production' 
-    ? "https://altakween-4nng.vercel.app/api" 
-    : "http://localhost:8081/api"
-
+  const API_BASE_URL = "https://altakween-4nng.vercel.app/api"
+  
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
@@ -187,32 +184,33 @@ export const ApiProvider = ({ children }) => {
         method: options.method || "GET",
         headers,
         body: options.body ? JSON.stringify(options.body) : undefined,
-        credentials: "include",
       });
 
-      // Handle non-JSON responses
-      const contentType = response.headers.get('content-type');
-      let data;
-      
-      if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-      } else {
-        const text = await response.text();
-        throw new Error(`Unexpected response type: ${contentType}. Response: ${text}`);
-      }
-
+      // Check if response is OK
       if (!response.ok) {
-        const error = new Error(data.message || `HTTP ${response.status}: ${response.statusText}`);
-        error.response = { data, status: response.status };
+        // Try to get error message from response
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          // Response is not JSON
+        }
+        
+        const error = new Error(errorMessage);
+        error.status = response.status;
         throw error;
       }
 
+      // Parse JSON response
+      const data = await response.json();
       return data;
+
     } catch (error) {
       console.error("API Error:", {
         endpoint,
         error: error.message,
-        response: error.response
+        status: error.status
       });
       
       setError(error.message);
@@ -234,7 +232,7 @@ export const ApiProvider = ({ children }) => {
     post,
     put,
     del,
-    API_BASE_URL // Export for debugging
+    API_BASE_URL
   }
 
   return <ApiContext.Provider value={value}>{children}</ApiContext.Provider>
