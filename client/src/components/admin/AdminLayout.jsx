@@ -30,11 +30,11 @@ const AdminLayout = ({ children }) => {
 
   const navigation = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
-    { name: "Users", href: "/admin/users", icon: Users },
+    // { name: "Users", href: "/admin/users", icon: Users },
     { name: "Packages", href: "/admin/packages", icon: Plane },
-    { name: "Hotels", href: "/admin/hotels", icon: Building },
+    // { name: "Hotels", href: "/admin/hotels", icon: Building },
     { name: "Bookings", href: "/admin/bookings", icon: Calendar },
-    { name: "Payments", href: "/admin/payments", icon: CreditCard },
+    // { name: "Payments", href: "/admin/payments", icon: CreditCard },
     { name: "Reports", href: "/admin/reports", icon: BarChart3 },
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ]

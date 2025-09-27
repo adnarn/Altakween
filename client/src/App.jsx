@@ -99,6 +99,7 @@ import Packages from './pages/admin/Packages';
 import Bookings from './components/admin/Bookings';
 import BookingsPage from './pages/Bookings'
 import ClientProfile from './pages/ClientProfile';
+import Reports from './pages/admin/Reports';
 
 
 function App() {
@@ -176,6 +177,16 @@ function App() {
                 <ProtectedRoute requiredRole="admin">
                   <AdminLayout>
                     <AdminDashboard />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/reports"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminLayout>
+                    <Reports />
                   </AdminLayout>
                 </ProtectedRoute>
               }
