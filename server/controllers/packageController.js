@@ -1,4 +1,4 @@
-const Package = require("../models/Package")
+const Package = require("../models/package.js")
 
 // Get all packages with filtering, searching, and pagination
 const getPackages = async (req, res) => {
