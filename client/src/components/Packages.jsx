@@ -85,7 +85,7 @@ const Packages = () => {
                 <div className="flex justify-between items-start">
                   <h3 className="text-xl font-bold text-gray-900">{pkg.title}</h3>
                   <span className="text-lg font-semibold text-blue-600">
-                    {pkg.price ? `${pkg.price.toLocaleString()}` : 'Contact Us'}
+                    {pkg.price ? `₦${Number(pkg.price).toLocaleString('en-US', {maximumFractionDigits: 0})}` : 'Contact Us'}
                   </span>
                 </div>
                 

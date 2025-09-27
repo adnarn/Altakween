@@ -228,7 +228,10 @@ const Services = () => {
                       <div>
                         <p className="text-xs font-medium text-gray-500 mb-1">Starting from</p>
                         <p className="text-2xl font-bold text-gray-900">
-                          {typeof pkg.price === "string" && pkg.price.startsWith("₦") ? pkg.price : `₦${pkg.price}`}
+                          {typeof pkg.price === "string" && pkg.price.startsWith("₦") 
+                            ? pkg.price 
+                            : `₦${Number(pkg.price).toLocaleString('en-US', {maximumFractionDigits: 0})}`
+                          }
                           {!pkg.price.toString().includes("₦") && !pkg.price.toString().includes("$") && (
                             <span className="ml-1 text-sm font-normal text-gray-500">NGN</span>
                           )}

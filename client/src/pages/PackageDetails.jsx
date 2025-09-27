@@ -73,11 +73,7 @@ const PackageDetails = () => {
     )
   }
 
-  const formatPrice = (price) => {
-    if (typeof price === "string") return price
-    if (typeof price === "number") return `₦${price.toLocaleString()}`
-    return "Contact for pricing"
-  }
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-indigo-50 pt-20">
@@ -290,7 +286,11 @@ const PackageDetails = () => {
               <div className="flex justify-between items-start mb-6">
                 <div>
                   <p className="text-sm text-gray-500">Starting from</p>
-                  <p className="text-3xl font-bold text-blue-600">{formatPrice(packageData.price)}</p>
+                  <p className="text-3xl font-bold text-blue-600">
+                    {packageData.price !== undefined && packageData.price !== null 
+                      ? `₦${Number(packageData.price).toLocaleString('en-US', {maximumFractionDigits: 0})}`
+                      : 'Contact for pricing'}
+                  </p>
                   <p className="text-sm text-gray-500">per person</p>
                 </div>
                 <div className="flex space-x-2">

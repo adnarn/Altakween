@@ -237,9 +237,7 @@ const Bookings = () => {
                         Total Amount
                       </dt>
                       <dd className="mt-1 text-sm text-gray-900 font-medium sm:mt-0 sm:col-span-2">
-                        {typeof booking.estimatedTotal === 'number' 
-                          ? `₦${booking.estimatedTotal.toLocaleString()}` 
-                          : booking.estimatedTotal || 'N/A'}
+                        {`₦${Number(booking.estimatedTotal).toLocaleString('en-US', {maximumFractionDigits: 0})}`}
                       </dd>
                     </div>
                     {booking.bookingDetails?.specialRequests && (

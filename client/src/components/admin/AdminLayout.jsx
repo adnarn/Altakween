@@ -36,7 +36,7 @@ const AdminLayout = ({ children }) => {
     { name: "Bookings", href: "/admin/bookings", icon: Calendar },
     // { name: "Payments", href: "/admin/payments", icon: CreditCard },
     { name: "Reports", href: "/admin/reports", icon: BarChart3 },
-    { name: "Settings", href: "/admin/settings", icon: Settings },
+    // { name: "Settings", href: "/admin/settings", icon: Settings },
   ]
 
   return (
