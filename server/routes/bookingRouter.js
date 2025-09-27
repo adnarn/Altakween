@@ -23,7 +23,7 @@ router.get("/", getAllBookings)
 router.get("/stats", getBookingStats)
 router.get("/:id", getBookingById)
 router.put("/:id", updateBooking)
-router.patch("/:id/status", updateBookingStatus)
+router.put("/:id/status", updateBookingStatus)
 router.patch("/:id/cancel", cancelBooking)
 router.delete("/:id", deleteBooking)
 

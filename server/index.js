@@ -468,15 +468,10 @@ const app = express();
 const PORT = process.env.PORT || 8081;
 
 app.use(express.json());
-const corsOptions = {
+app.use(cors({
   origin: ['http://localhost:5173', 'https://altakween.vercel.app'],
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 200 // For legacy browser support
-};
- 
-app.use(cors(corsOptions));
+}));
 
 // Test route
 app.get('/', (req, res) => {

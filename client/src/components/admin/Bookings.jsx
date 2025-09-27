@@ -80,15 +80,22 @@ const Bookings = () => {
 
   const handleStatusUpdate = async () => {
     try {
-      const response = await patch(`/bookings/${selectedBooking._id}/status`, statusUpdate)
+      const response = await put(`/bookings/${selectedBooking._id}/status`, {
+        bookingStatus: statusUpdate.bookingStatus,
+        adminNotes: statusUpdate.adminNotes,
+        contactedBy: statusUpdate.contactedBy,
+        followUpDate: statusUpdate.followUpDate
+      });
+      
       if (response.success) {
-        setShowStatusModal(false)
-        setSelectedBooking(null)
-        setStatusUpdate({ bookingStatus: "", adminNotes: "", contactedBy: "", followUpDate: "" })
-        fetchBookings()
+        setShowStatusModal(false);
+        setSelectedBooking(null);
+        setStatusUpdate({ bookingStatus: "", adminNotes: "", contactedBy: "", followUpDate: "" });
+        fetchBookings();
       }
     } catch (err) {
-      console.error("Status update error:", err)
+      console.error("Status update error:", err);
+      setError("Failed to update booking status");
     }
   }
 
