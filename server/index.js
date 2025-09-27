@@ -455,7 +455,7 @@
 // });
 
 // module.exports = app;
-// index.js
+
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -465,83 +465,132 @@ const path = require('path');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8081;
 
-// ✅ Middleware
 app.use(express.json());
-app.use(
-  cors({
-    origin: ['http://localhost:5173', 'https://altakween.vercel.app'],
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: ['http://localhost:5173', 'https://altakween.vercel.app'],
+  credentials: true,
+}));
 
-// ✅ Connect to MongoDB (once, not per request)
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch((err) => console.error('❌ MongoDB connection failed:', err.message));
-
-// ✅ Base route
+// Test route
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: '🚀 Altaqween API running on Render',
-    mongo: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    timestamp: new Date().toISOString(),
+    message: '🚀 API is running with correct paths!',
+    timestamp: new Date().toISOString()
   });
 });
 
-// ✅ Health check route
+// MongoDB connection
+const connectDB = async () => {
+  try {
+    if (mongoose.connection.readyState === 1) return;
+    
+    if (process.env.MONGO_URI) {
+      await mongoose.connect(process.env.MONGO_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+      });
+      console.log('✅ MongoDB connected');
+    }
+  } catch (error) {
+    console.error('❌ MongoDB connection failed:', error.message);
+  }
+};
+
+app.use(async (req, res, next) => {
+  await connectDB();
+  next();
+});
+
+// ✅ CORRECT PATH REQUIREMENTS - Use absolute paths
+console.log('🔍 Loading routes from:', path.join(__dirname, 'routes'));
+
+try {
+  // Use require with absolute path
+  const authRouter = require('./routes/auth');
+  app.use('/api/auth', authRouter);
+  console.log('✅ Auth routes loaded successfully');
+} catch (error) {
+  console.error('❌ Auth routes failed:', error);
+  app.use('/api/auth', (req, res) => {
+    res.status(500).json({ error: 'Auth routes failed to load: ' + error.message });
+  });
+}
+
+try {
+  const packageRouter = require('./routes/packageRouter');
+  app.use('/api/packages', packageRouter);
+  console.log('✅ Package routes loaded successfully');
+} catch (error) {
+  console.error('❌ Package routes failed:', error);
+  app.use('/api/packages', (req, res) => {
+    res.status(500).json({ error: 'Package routes failed to load: ' + error.message });
+  });
+}
+
+try {
+  const bookingRouter = require('./routes/bookingRouter');
+  app.use('/api/bookings', bookingRouter);
+  console.log('✅ Booking routes loaded successfully');
+} catch (error) {
+  console.error('❌ Booking routes failed:', error);
+  app.use('/api/bookings', (req, res) => {
+    res.status(500).json({ error: 'Booking routes failed to load: ' + error.message });
+  });
+}
+
+try {
+  const userRouter = require('./routes/userRoutes');
+  app.use('/api/users', userRouter);
+  console.log('✅ User routes loaded successfully');
+} catch (error) {
+  console.error('❌ User routes failed:', error);
+  app.use('/api/users', (req, res) => {
+    res.status(500).json({ error: 'User routes failed to load: ' + error.message });
+  });
+}
+
+// Health check
 app.get('/health', (req, res) => {
   res.json({
     status: 'OK',
-    database:
-      mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-    time: new Date().toISOString(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString()
   });
 });
 
-// ✅ Import routes
-try {
-  const authRouter = require('./routes/auth');
-  const packageRouter = require('./routes/packageRouter');
-  const bookingRouter = require('./routes/bookingRouter');
-  const userRouter = require('./routes/userRoutes');
+// Debug route
+app.get('/debug', (req, res) => {
+  res.json({
+    message: 'Debug endpoint',
+    currentDir: __dirname,
+    routesExist: {
+      auth: require.resolve('./routes/auth'),
+      packageRouter: require.resolve('./routes/packageRouter'),
+      bookingRouter: require.resolve('./routes/bookingRouter'),
+      userRoutes: require.resolve('./routes/userRoutes')
+    }
+  });
+});
 
-  app.use('/api/auth', authRouter);
-  app.use('/api/packages', packageRouter);
-  app.use('/api/bookings', bookingRouter);
-  app.use('/api/users', userRouter);
-
-  console.log('✅ All routes loaded successfully');
-} catch (err) {
-  console.error('❌ Route loading error:', err.message);
-}
-
-// ✅ 404 handler
+// 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
     message: 'Route not found',
     path: req.originalUrl,
+    availableRoutes: [
+      '/',
+      '/health',
+      '/debug',
+      '/api/auth/*',
+      '/api/packages/*',
+      '/api/bookings/*',
+      '/api/users/*'
+    ]
   });
 });
 
-// ✅ Global error handler
-app.use((err, req, res, next) => {
-  console.error('🔥 Global Error:', err);
-  res.status(500).json({
-    success: false,
-    message: 'Internal server error',
-    error: err.message,
-  });
-});
-
-// ✅ Start server (Render runs this directly)
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+module.exports = app;
