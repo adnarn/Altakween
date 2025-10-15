@@ -43,7 +43,7 @@ const Contact = () => {
     {
       icon: <Mail className="h-6 w-6 text-blue-600" />,
       title: "Email Us",
-      value: "info@altakween.com",
+      value: "altaqweenltd@gmail.com",
       subtitle: "We'll respond within 24 hours"
     },
     {
@@ -295,7 +295,7 @@ const Contact = () => {
               Call Us Now
             </a>
             <a 
-              href="mailto:info@altakween.com" 
+              href="mailto:altaqweenltd@gmail.com" 
               className="border-2 border-white text-white px-8 py-3 rounded-full font-medium hover:bg-white hover:bg-opacity-10 transition-colors duration-300"
             >
               Email Us

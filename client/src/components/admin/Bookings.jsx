@@ -78,26 +78,31 @@ const Bookings = () => {
     fetchBookings()
   }, [currentPage, searchTerm, statusFilter, needsFollowUpFilter])
 
-  const handleStatusUpdate = async () => {
-    try {
-      const response = await put(`/bookings/${selectedBooking._id}/status`, {
-        bookingStatus: statusUpdate.bookingStatus,
-        adminNotes: statusUpdate.adminNotes,
-        contactedBy: statusUpdate.contactedBy,
-        followUpDate: statusUpdate.followUpDate
+ const handleStatusUpdate = async () => {
+  try {
+    const response = await put(`/bookings/${selectedBooking._id}/status`, {
+      bookingStatus: statusUpdate.bookingStatus,
+      adminNotes: statusUpdate.adminNotes,
+      contactedBy: currentUser?.name || statusUpdate.contactedBy,
+      followUpDate: statusUpdate.followUpDate
+    });
+    
+    if (response.success) {
+      setShowStatusModal(false);
+      setSelectedBooking(null);
+      setStatusUpdate({ 
+        bookingStatus: "", 
+        adminNotes: "", 
+        contactedBy: currentUser?.name || "", 
+        followUpDate: "" 
       });
-      
-      if (response.success) {
-        setShowStatusModal(false);
-        setSelectedBooking(null);
-        setStatusUpdate({ bookingStatus: "", adminNotes: "", contactedBy: "", followUpDate: "" });
-        fetchBookings();
-      }
-    } catch (err) {
-      console.error("Status update error:", err);
-      setError("Failed to update booking status");
+      fetchBookings();
     }
+  } catch (err) {
+    console.error("Status update error:", err);
+    setError("Failed to update booking status");
   }
+}
 
   const handleCancelBooking = async (bookingId, reason) => {
     try {
@@ -141,8 +146,29 @@ const Bookings = () => {
         return `${baseClasses} bg-gray-100 text-gray-800`
     }
   }
+  const [currentUser, setCurrentUser] = useState(null);
+useEffect(() => {
+  // Fetch current user data from localStorage
+  try {
+    const storedUser = localStorage.getItem("altaqween_user");
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setCurrentUser(user);
+      // Update the statusUpdate with the user's name
+      if (user && user.name) {
+        setStatusUpdate(prev => ({
+          ...prev,
+          contactedBy: user.name
+        }));
+      }
+    }
+  } catch (err) {
+    console.error("Error getting user data from localStorage:", err);
+  }
+}, []);
 
-  const formatDate = (dateString) => {
+
+const formatDate = (dateString) => {
     if (!dateString) return "Not set"
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -740,17 +766,16 @@ const Bookings = () => {
                   ))}
                 </select>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Contacted By</label>
-                <input
-                  type="text"
-                  value={statusUpdate.contactedBy}
-                  onChange={(e) => setStatusUpdate((prev) => ({ ...prev, contactedBy: e.target.value }))}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter your name or staff member who contacted customer"
-                />
-              </div>
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-2">Contacted By</label>
+  <input
+    type="text"
+    value={statusUpdate.contactedBy || (currentUser?.name || '')}
+    readOnly
+    className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-100 cursor-not-allowed"
+  />
+  <p className="mt-1 text-xs text-gray-500">Automatically filled with your admin account</p>
+</div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Follow-up Date</label>
