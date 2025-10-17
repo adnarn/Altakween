@@ -128,10 +128,9 @@ const getBookingById = async (req, res) => {
   try {
     const { id } = req.params
 
-    const booking = await Booking.findById(id).populate(
-      "packageId",
-      "title category location duration rating image includes",
-    )
+    const booking = await Booking.findById(id)
+      .populate("packageId", "title category location duration rating image includes")
+      .sort({ 'adminActivityLogs.date': -1 })
 
     if (!booking) {
       return res.status(404).json({
@@ -264,9 +263,15 @@ const updateBooking = async (req, res) => {
 const updateBookingStatus = async (req, res) => {
   try {
     const { id } = req.params
-    const { bookingStatus, adminNotes, contactedBy, followUpDate } = req.body
+    const { bookingStatus, adminNotes, contactedBy, followUpDate, adminNote } = req.body
+    const adminUser = req.user?.name || req.user?.email || 'System' // Get admin info from auth middleware
 
-    const updateData = { updatedAt: Date.now() }
+    const updateData = { 
+      updatedAt: Date.now(),
+      $push: {} // Initialize for potential array updates
+    }
+
+    // Handle status update
     if (bookingStatus) {
       updateData.bookingStatus = bookingStatus
       // If status is being changed to "contacted", record the contact time
@@ -274,14 +279,42 @@ const updateBookingStatus = async (req, res) => {
         updateData.contactedAt = Date.now()
         if (contactedBy) updateData.contactedBy = contactedBy
       }
+
+      // Add to activity log when status changes
+      updateData.$push.adminActivityLogs = {
+        updatedBy: adminUser,
+        status: bookingStatus,
+        note: adminNote || `Status changed to ${bookingStatus}`,
+        date: new Date()
+      }
     }
+
+    // Update admin notes if provided
     if (adminNotes !== undefined) updateData.adminNotes = adminNotes
+    
+    // Update follow-up date if provided
     if (followUpDate) updateData.followUpDate = new Date(followUpDate)
 
-    const booking = await Booking.findByIdAndUpdate(id, updateData, { new: true, runValidators: true }).populate(
-      "packageId",
-      "title category location duration rating image",
-    )
+    // If there's an admin note but no status change, add it to the activity log
+    if (adminNote && !bookingStatus) {
+      updateData.$push = updateData.$push || {}
+      updateData.$push.adminActivityLogs = {
+        updatedBy: adminUser,
+        status: req.body.currentStatus || 'note',
+        note: adminNote,
+        date: new Date()
+      }
+    }
+
+    const booking = await Booking.findByIdAndUpdate(
+      id, 
+      updateData, 
+      { 
+        new: true, 
+        runValidators: true,
+        setDefaultsOnInsert: true
+      }
+    ).populate("packageId", "title category location duration rating image")
 
     if (!booking) {
       return res.status(404).json({

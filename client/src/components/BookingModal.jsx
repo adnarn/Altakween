@@ -501,7 +501,7 @@ const Step2 = ({ formData, onChange, packageData }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Start Date *
+            Departure Date *
           </label>
           <div className="relative">
             <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -518,7 +518,7 @@ const Step2 = ({ formData, onChange, packageData }) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            End Date *
+            Return Date *
           </label>
           <div className="relative">
             <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -607,6 +607,7 @@ const Step2 = ({ formData, onChange, packageData }) => {
           >
             <option value="single">Single Room</option>
             <option value="double">Double Room</option>
+            <option value="double">Quadruple</option>
             <option value="triple">Triple Room</option>
             <option value="family">Family Room</option>
             <option value="suite">Suite</option>

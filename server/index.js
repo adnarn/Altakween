@@ -488,11 +488,10 @@ const connectDB = async () => {
     if (mongoose.connection.readyState === 1) return;
     
     if (process.env.MONGO_URI) {
-      await mongoose.connect(process.env.MONGO_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-      });
+      await mongoose.connect(process.env.MONGO_URI);
       console.log('✅ MongoDB connected');
+    } else {
+      throw new Error('MONGO_URI is not defined in environment variables');
     }
   } catch (error) {
     console.error('❌ MongoDB connection failed:', error.message);
@@ -549,6 +548,26 @@ try {
   console.error('❌ User routes failed:', error);
   app.use('/api/users', (req, res) => {
     res.status(500).json({ error: 'User routes failed to load: ' + error.message });
+  });
+}
+try {
+  const dashRouter = require('./routes/dashboardRoutes');
+  app.use('/api/dashboard', dashRouter);
+  console.log('✅ Dashboard routes loaded successfully');
+} catch (error) {
+  console.error('❌ Dashboard routes failed:', error);
+  app.use('/api/dashboard', (req, res) => {
+    res.status(500).json({ error: 'Dashboard routes failed to load: ' + error.message });
+  });
+}
+try {
+  const reportsRouter = require('./routes/reportRoutes');
+  app.use('/api/reports', reportsRouter);
+  console.log('✅ Reports routes loaded successfully');
+} catch (error) {
+  console.error('❌ Reports routes failed:', error);
+  app.use('/api/reports', (req, res) => {
+    res.status(500).json({ error: 'Dashboard routes failed to load: ' + error.message });
   });
 }
 

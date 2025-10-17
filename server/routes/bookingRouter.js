@@ -12,6 +12,7 @@ const {
   deleteBooking,
   getBookingStats,
 } = require("../controllers/bookingController")
+const protect = require("../middleware/authMiddleware")
 
 // Public routes (for customers)
 router.post("/", createBooking)
@@ -23,7 +24,7 @@ router.get("/", getAllBookings)
 router.get("/stats", getBookingStats)
 router.get("/:id", getBookingById)
 router.put("/:id", updateBooking)
-router.put("/:id/status", updateBookingStatus)
+router.put("/:id/status", protect, updateBookingStatus)
 router.patch("/:id/cancel", cancelBooking)
 router.delete("/:id", deleteBooking)
 

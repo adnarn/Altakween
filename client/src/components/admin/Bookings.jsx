@@ -78,25 +78,27 @@ const Bookings = () => {
     fetchBookings()
   }, [currentPage, searchTerm, statusFilter, needsFollowUpFilter])
 
- const handleStatusUpdate = async () => {
+const handleStatusUpdate = async () => {
   try {
-    const response = await put(`/bookings/${selectedBooking._id}/status`, {
+    const updateData = {
       bookingStatus: statusUpdate.bookingStatus,
       adminNotes: statusUpdate.adminNotes,
+      adminNote: statusUpdate.adminNotes, // For activity log
       contactedBy: currentUser?.name || statusUpdate.contactedBy,
-      followUpDate: statusUpdate.followUpDate
-    });
+      followUpDate: statusUpdate.followUpDate,
+      currentStatus: selectedBooking.bookingStatus // For activity log
+    };
+
+    const response = await put(`/bookings/${selectedBooking._id}/status`, updateData);
     
     if (response.success) {
       setShowStatusModal(false);
-      setSelectedBooking(null);
-      setStatusUpdate({ 
-        bookingStatus: "", 
-        adminNotes: "", 
-        contactedBy: currentUser?.name || "", 
-        followUpDate: "" 
-      });
-      fetchBookings();
+      // Refresh the selected booking with updated data including the new activity log
+      const updatedBooking = await get(`/bookings/${selectedBooking._id}`);
+      if (updatedBooking.success) {
+        setSelectedBooking(updatedBooking.data);
+      }
+      fetchBookings(); // Refresh the bookings list
     }
   } catch (err) {
     console.error("Status update error:", err);
@@ -735,6 +737,39 @@ const formatDate = (dateString) => {
                   <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded">{selectedBooking.adminNotes}</p>
                 </div>
               )}
+
+              {/* Activity Log Section */}
+              <div>
+                <h4 className="font-medium text-gray-900 mb-2">Activity Log</h4>
+                <div className="space-y-4">
+                  {selectedBooking.adminActivityLogs?.length > 0 ? (
+                    selectedBooking.adminActivityLogs.map((log, index) => (
+                      <div key={index} className="border-l-2 pl-4 py-2 border-blue-200">
+                        <div className="flex justify-between items-baseline">
+                          <span className="font-medium text-sm">{log.updatedBy}</span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(log.date).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className={`px-2 py-0.5 text-xs rounded-full ${
+                            log.status === 'confirmed' ? 'bg-green-100 text-green-800' :
+                            log.status === 'cancelled' ? 'bg-red-100 text-red-800' :
+                            log.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                            log.status === 'contacted' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {log.status}
+                          </span>
+                          {log.note && <p className="text-sm text-gray-700">{log.note}</p>}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">No activity recorded yet</p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>

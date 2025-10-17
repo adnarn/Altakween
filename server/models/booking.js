@@ -16,6 +16,13 @@ const bookingSchema = new mongoose.Schema({
     required: true,
   },
 
+  // Reference to the user who made the booking
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+
   // Customer Information
   customerInfo: {
     firstName: {
@@ -111,6 +118,27 @@ const bookingSchema = new mongoose.Schema({
     type: String,
     maxlength: 1000,
   },
+  adminActivityLogs: [
+    {
+      updatedBy: {
+        type: String,
+        required: true,
+      },
+      status: {
+        type: String,
+        required: true,
+        enum: ["pending", "contacted", "confirmed", "cancelled", "completed"],
+      },
+      note: {
+        type: String,
+        maxlength: 1000,
+      },
+      date: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
   contactedAt: {
     type: Date,
   },
