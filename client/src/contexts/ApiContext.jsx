@@ -146,8 +146,8 @@ export const useApi = () => {
 }
 
 export const ApiProvider = ({ children }) => {
-  const API_BASE_URL = "http://localhost:8081/api"
-  // const API_BASE_URL = "https://altakween-4nng.vercel.app/api"
+  // const API_BASE_URL = "http://localhost:8081/api"
+  const API_BASE_URL = "https://altakween-4nng.vercel.app/api"
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
