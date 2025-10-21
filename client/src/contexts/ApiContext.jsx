@@ -196,6 +196,7 @@ export const ApiProvider = ({ children }) => {
           errorMessage = errorData.message || errorMessage;
         } catch (e) {
           // Response is not JSON
+          console.log(e);
         }
         
         const error = new Error(errorMessage);
