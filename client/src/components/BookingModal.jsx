@@ -171,6 +171,11 @@ const BookingModal = ({ package: packageData, isOpen, onClose, onBookingSuccess 
       return
     }
 
+    if (!currentUser) {
+      toast.error("You must be logged in to make a booking")
+      return
+    }
+
     const estimatedTotal = calculateEstimatedTotal();
     
     // Add validation for estimatedTotal
@@ -183,13 +188,14 @@ const BookingModal = ({ package: packageData, isOpen, onClose, onBookingSuccess 
     try {
       const bookingData = {
         packageId: packageData._id,
+        userId: currentUser._id,
         customerInfo: formData.customerInfo,
         bookingDetails: formData.bookingDetails,
         emergencyContact: formData.emergencyContact,
         estimatedTotal: estimatedTotal,
       }
 
-      const response = await post("/bookings", bookingData)
+      const response = await post("/bookings/create", bookingData)
 
       if (response.success) {
         toast.success(response.message || "Booking request submitted successfully!")

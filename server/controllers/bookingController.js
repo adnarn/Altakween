@@ -4,7 +4,7 @@ const PackageModel = require("../models/package")
 // Create a new booking
 const createBooking = async (req, res) => {
   try {
-    const { packageId, customerInfo, bookingDetails, emergencyContact } = req.body
+    const { userId, packageId, customerInfo, bookingDetails, emergencyContact } = req.body
 
     // Validate package exists
     const packageInfo = await PackageModel.findById(packageId)
@@ -23,6 +23,7 @@ const createBooking = async (req, res) => {
 
     // Create booking with simplified structure
     const bookingData = {
+      userId,
       packageId,
       packageTitle: packageInfo.title,
       packagePrice: packageInfo.price,

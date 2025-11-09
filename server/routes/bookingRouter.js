@@ -15,7 +15,7 @@ const {
 const protect = require("../middleware/authMiddleware")
 
 // Public routes (for customers)
-router.post("/", createBooking)
+router.post("/create", createBooking)
 router.get("/reference/:reference", getBookingByReference)
 router.get("/customer/:email", getBookingsByCustomer)
 
