@@ -146,8 +146,8 @@ export const useApi = () => {
 }
 
 export const ApiProvider = ({ children }) => {
-  // const API_BASE_URL = "http://localhost:8081/api"
-  const API_BASE_URL = "https://altakween-4nng.vercel.app/api"
+  const API_BASE_URL = "http://localhost:8081/api"
+  // const API_BASE_URL = "https://altakween-4nng.vercel.app/api"
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -209,14 +209,33 @@ export const ApiProvider = ({ children }) => {
       return data;
 
     } catch (error) {
+      let errorMessage = 'An unexpected error occurred. Please try again later.';
+      
+      // Handle different types of connection errors
+      if (error.message.includes('ECONNREFUSED')) {
+        errorMessage = 'Unable to connect to the server. Please check your internet connection and try again.';
+      } else if (error.message.includes('ECONNRESET')) {
+        errorMessage = 'Connection to the server was interrupted. Please check your internet connection and try again.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'The request timed out. Please check your internet connection and try again.';
+      } else if (error.message.includes('Network Error')) {
+        errorMessage = 'Network error. Please check your internet connection and try again.';
+      } else {
+        errorMessage = error.message || errorMessage;
+      }
+      
+      const enhancedError = new Error(errorMessage);
+      enhancedError.status = error.status || 500;
+      
       console.error("API Error:", {
         endpoint,
-        error: error.message,
-        status: error.status
+        error: enhancedError.message,
+        status: enhancedError.status,
+        originalError: error.message
       });
       
-      setError(error.message);
-      throw error;
+      setError(enhancedError.message);
+      throw enhancedError;
     } finally {
       setLoading(false);
     }
