@@ -16,6 +16,7 @@ import {
 import Sidebar from "./Sidebar"
 import { useAuth } from "../../contexts/AuthContext"
 import Navbar from "./Navbar"
+import { FaList } from "react-icons/fa"
 
 const AdminLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -38,6 +39,7 @@ const AdminLayout = ({ children }) => {
     { name: "Bookings", href: "/admin/bookings", icon: Calendar },
     // { name: "Payments", href: "/admin/payments", icon: CreditCard },
     { name: "Reports", href: "/admin/reports", icon: BarChart3 },
+    { name: "Category", href: "/admin/categories", icon: FaList },
     // { name: "Settings", href: "/admin/settings", icon: Settings },
   ]
 

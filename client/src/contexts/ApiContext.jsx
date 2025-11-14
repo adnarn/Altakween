@@ -63,16 +63,29 @@
 //           credentials: "include", // Important for cookies
 //         });
   
-//         const data = await response.json();
+//         // Handle empty responses (like 204 No Content)
+//         const contentType = response.headers.get("content-type");
+//         let data;
+        
+//         if (contentType && contentType.includes("application/json")) {
+//           data = await response.json();
+//         } else {
+//           data = await response.text();
+//           // If the response is empty but the request was successful, return a success response
+//           if (response.ok && (!data || data.trim() === '')) {
+//             return { success: true };
+//           }
+//         }
   
 //         if (!response.ok) {
 //           // If the response is not ok, throw an error with the error message from the server
-//           const error = new Error(data.message || "Request failed");
+//           const error = new Error(data?.message || "Request failed");
 //           error.response = { data, status: response.status };
 //           throw error;
 //         }
-  
-//         return data;
+
+//         // Return the data with success status
+//         return response.status === 204 ? { success: true } : data;  
 //       } catch (error) {
 //         console.error("API Error:", error);
 //         setError(error.message);

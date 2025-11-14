@@ -112,6 +112,16 @@ try {
     res.status(500).json({ error: 'Dashboard routes failed to load: ' + error.message });
   });
 }
+try {
+  const categoryRoutes = require('./routes/categoryRoutes');
+  app.use('/api/v1/categories', categoryRoutes);
+  console.log('✅ Category routes loaded successfully');
+} catch (error) {
+  console.error('❌ Category routes failed:', error);
+  app.use('/api/v1/categories', (req, res) => {
+    res.status(500).json({ error: 'Category routes failed to load: ' + error.message });
+  });
+}
 
 // Health check
 app.get('/health', (req, res) => {

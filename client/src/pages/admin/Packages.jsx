@@ -19,6 +19,8 @@ const Packages = () => {
   const [packageToDelete, setPackageToDelete] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
+  const [categories, setCategories] = useState([])
+  const [loadingCategories, setLoadingCategories] = useState(false)
   const packagesPerPage = 6
 
   const [formData, setFormData] = useState({
@@ -40,6 +42,31 @@ const Packages = () => {
     exclusions: [],
   })
 
+  // Fetch categories from API
+  const fetchCategories = async () => {
+    try {
+      setLoadingCategories(true)
+      const response = await get('/v1/categories')
+      // Handle different response formats
+      let categoriesData = []
+      
+      if (Array.isArray(response)) {
+        categoriesData = response
+      } else if (response && Array.isArray(response.data)) {
+        categoriesData = response.data
+      } else if (response && Array.isArray(response.result)) {
+        categoriesData = response.result
+      }
+      
+      setCategories(categoriesData)
+    } catch (err) {
+      console.error('Error fetching categories:', err)
+      // Don't show error to user as it's not critical for package operations
+    } finally {
+      setLoadingCategories(false)
+    }
+  }
+
   // Fetch packages from API
   const fetchPackages = async () => {
     try {
@@ -57,6 +84,7 @@ const Packages = () => {
 
   useEffect(() => {
     fetchPackages()
+    fetchCategories()
   }, [])
 
   // Filter packages based on search and category
@@ -331,9 +359,15 @@ const Packages = () => {
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
                   <option value="all">All Categories</option>
-                  <option value="pilgrimage">Pilgrimage</option>
-                  <option value="travel">Travel</option>
-                  <option value="featured">Featured</option>
+                  {loadingCategories ? (
+                    <option>Loading categories...</option>
+                  ) : (
+                    categories.map((category) => (
+                      <option key={category._id} value={category.name}>
+                        {category.name}
+                      </option>
+                    ))
+                  )}
                 </select>
                 
                 {/* Additional filters can be added here */}
@@ -524,7 +558,7 @@ const Packages = () => {
                     <button
                       onClick={() => paginate(currentPage > 1 ? currentPage - 1 : 1)}
                       disabled={currentPage === 1}
-                      className="relative inline-flex items-center px-3 py-2 rounded-l-xl border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="relative inline-flex items-center px-3 py-2 rounded-l-xl border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                     >
                       ←
                     </button>
@@ -603,16 +637,24 @@ const Packages = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
                   <select
+                    id="category"
                     name="category"
                     value={formData.category}
                     onChange={handleInputChange}
+                    className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={loadingCategories}
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                   >
-                    <option value="">Select Category</option>
-                    <option value="pilgrimage">Pilgrimage</option>
-                    <option value="travel">Travel</option>
-                    <option value="featured">Featured</option>
+                    <option value="">Select a category</option>
+                    {loadingCategories ? (
+                      <option>Loading categories...</option>
+                    ) : (
+                      categories.map((category) => (
+                        <option key={category._id} value={category.name}>
+                          {category.name}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
 

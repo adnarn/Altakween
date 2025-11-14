@@ -100,6 +100,7 @@ import Bookings from './components/admin/Bookings';
 import BookingsPage from './pages/Bookings'
 import ClientProfile from './pages/ClientProfile';
 import Reports from './pages/admin/Reports';
+import Categories from './components/admin/Categories';
 
 
 function App() {
@@ -218,6 +219,16 @@ function App() {
                 <ProtectedRoute requiredRole="admin">
                   <AdminLayout>
                     <Bookings />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/categories"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminLayout>
+                    <Categories />
                   </AdminLayout>
                 </ProtectedRoute>
               }
