@@ -287,14 +287,6 @@ export const ApiProvider = ({ children }) => {
   const put = useCallback((endpoint, body) => fetchData(endpoint, { method: "PUT", body }), [fetchData]);
   const del = useCallback((endpoint) => fetchData(endpoint, { method: "DELETE" }), [fetchData]);
 
-  const forgotPassword = useCallback(async (email) => {
-    return await post('/auth/forgot-password', { email });
-  }, [post]);
-
-  const resetPassword = useCallback(async (token, newPassword) => {
-    return await post('/auth/reset-password', { token, newPassword });
-  }, [post]);
-
   const value = {
     loading,
     error,
@@ -302,8 +294,6 @@ export const ApiProvider = ({ children }) => {
     post,
     put,
     del,
-    forgotPassword,
-    resetPassword,
     API_BASE_URL
   }
 

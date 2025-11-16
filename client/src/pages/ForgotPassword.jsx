@@ -1,21 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Mail, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
-import { useApi } from '../contexts/ApiContext';
+import axios from 'axios';
 import PageLayout from '../components/PageLayout';
 import Navbar from '../components/Navbar';
 
 const ForgotPassword = () => {
-  const { forgotPassword } = useApi();
   const [formData, setFormData] = useState({ email: '' });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [tokenSent, setTokenSent] = useState(false);
-  const [resetToken, setResetToken] = useState('');
-  const navigate = useNavigate();
 
   const validateForm = useCallback(() => {
     const newErrors = {};
@@ -46,11 +43,12 @@ const ForgotPassword = () => {
 
     setIsLoading(true);
     try {
-      const response = await forgotPassword(formData.email);
+      await axios.post('https://altakween-4nng.vercel.app/api/auth/forgot-password', {
+        email: formData.email
+      });
 
-      setResetToken(response.data.resetToken);
       setTokenSent(true);
-      toast.success('Password reset instructions sent to your email');
+      toast.success('Password reset link sent to your email inbox!');
     } catch (error) {
       console.error('Forgot password error:', error);
       let errorMessage = 'Failed to send reset instructions';
@@ -67,10 +65,6 @@ const ForgotPassword = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleResetPassword = () => {
-    navigate('/reset-password', { state: { token: resetToken } });
   };
 
   return (
@@ -199,33 +193,25 @@ const ForgotPassword = () => {
                   <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Check Your Email</h3>
                   <p className="text-gray-600 text-sm mb-6">
-                    We've sent password reset instructions to your email address.
+                    We've sent a password reset link to your email address.
                     <br />
-                    <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded mt-2 inline-block">
-                      Token: {resetToken}
-                    </span>
+                    Please check your inbox and click the link to reset your password.
                   </p>
                   
                   <div className="space-y-3">
-                    <button
-                      onClick={handleResetPassword}
+                    <Link
+                      to="/login"
                       className="w-full flex justify-center items-center py-2.5 px-4 rounded-lg text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200"
                     >
-                      Continue to Reset Password
-                    </button>
+                      Back to Login
+                    </Link>
                     
                     <button
-                      onClick={() => {
-                        setTokenSent(false);
-                        setResetToken('');
-                        setFormData({ email: '' });
-                        setFormSubmitted(false);
-                        setErrors({});
-                      }}
+                      onClick={() => setTokenSent(false)}
                       className="w-full flex justify-center items-center py-2.5 px-4 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-all duration-200"
                     >
                       <ArrowLeft className="w-4 h-4 mr-2" />
-                      Back to Email Entry
+                      Try Another Email
                     </button>
                   </div>
                 </div>
