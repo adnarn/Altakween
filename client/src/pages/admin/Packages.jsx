@@ -183,7 +183,6 @@ const Packages = () => {
     try {
       const packageData = {
         ...formData,
-        price: Number.parseFloat(formData.price) || 0,
         rating: Number.parseFloat(formData.rating) || 0,
         reviews: Number.parseInt(formData.reviews) || 0,
       }

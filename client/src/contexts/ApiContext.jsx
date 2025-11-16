@@ -161,8 +161,8 @@ export const useApi = () => {
 }
 
 export const ApiProvider = ({ children }) => {
-  // const API_BASE_URL = "http://localhost:8081/api"
-  const API_BASE_URL = "https://altakween-4nng.vercel.app/api"
+  const API_BASE_URL = "http://localhost:8081/api"
+  // const API_BASE_URL = "https://altakween-4nng.vercel.app/api"
   const { logout } = useAuth()
   
   const [loading, setLoading] = useState(false)
@@ -231,14 +231,19 @@ export const ApiProvider = ({ children }) => {
         }
         
         // Try to get error message from response
-        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.message || errorMessage;
-        } catch (e) {
-          // Response is not JSON
-          console.log(e);
-        }
+          let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+          try {
+            const errorData = await response.json();
+            if (errorData.errors && Array.isArray(errorData.errors)) {
+              // Handle validation errors array
+              errorMessage = errorData.errors.join(', ') || errorData.message || errorMessage;
+            } else {
+              errorMessage = errorData.message || errorMessage;
+            }
+          } catch (e) {
+            // Response is not JSON
+            console.log(e);
+          }
         
         const error = new Error(errorMessage);
         error.status = response.status;

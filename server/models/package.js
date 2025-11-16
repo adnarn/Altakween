@@ -16,7 +16,6 @@ const packageSchema = new mongoose.Schema(
     category: {
       type: String,
       required: [true, "Package category is required"],
-      enum: ["pilgrimage", "travel", "tour", "business", "vacation"],
       default: "travel",
     },
     location: {
