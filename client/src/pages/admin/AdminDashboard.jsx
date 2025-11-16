@@ -82,7 +82,13 @@ const AdminDashboard = () => {
       }
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);
-      setError('Failed to load dashboard data');
+      
+      // Handle authentication errors differently
+      if (err.isAuthError) {
+        setError('Please log in to view dashboard');
+      } else {
+        setError('Failed to load dashboard data');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -149,21 +155,40 @@ const AdminDashboard = () => {
   }
 
   if (error && !stats) {
+    const isAuthError = error === 'Please log in to view dashboard';
+    
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-sm border border-red-200 max-w-md w-full p-6 text-center">
           <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <FaExclamationTriangle className="h-6 w-6 text-red-600" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to load dashboard</h3>
-          <p className="text-gray-600 text-sm mb-4">{error}</p>
-          <button
-            onClick={() => fetchDashboardStats()}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-          >
-            <FaSync className="mr-2" />
-            Try Again
-          </button>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            {isAuthError ? 'Authentication Required' : 'Unable to load dashboard'}
+          </h3>
+          <p className="text-gray-600 text-sm mb-4">
+            {isAuthError 
+              ? 'Please log in to access the dashboard.'
+              : error
+            }
+          </p>
+          {!isAuthError && (
+            <button
+              onClick={() => fetchDashboardStats()}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            >
+              <FaSync className="mr-2" />
+              Try Again
+            </button>
+          )}
+          {isAuthError && (
+            <button
+              onClick={() => window.location.href = '/login'}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            >
+              Go to Login
+            </button>
+          )}
         </div>
       </div>
     );
@@ -201,18 +226,45 @@ const AdminDashboard = () => {
 
         {/* Error Banner */}
         {error && stats && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+          <div className={`border rounded-xl p-4 ${
+            error === 'Please log in to view dashboard' 
+              ? 'bg-yellow-50 border-yellow-200' 
+              : 'bg-yellow-50 border-yellow-200'
+          }`}>
             <div className="flex items-start">
-              <FaExclamationTriangle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+              <FaExclamationTriangle className={`h-5 w-5 mt-0.5 flex-shrink-0 ${
+                error === 'Please log in to view dashboard' 
+                  ? 'text-yellow-600' 
+                  : 'text-yellow-600'
+              }`} />
               <div className="ml-3 flex-1">
-                <p className="text-sm text-yellow-800">{error}</p>
-                <button
-                  onClick={() => fetchDashboardStats(true)}
-                  className="mt-2 text-sm text-yellow-700 hover:text-yellow-800 font-medium inline-flex items-center"
-                >
-                  <FaSync className="mr-1 w-3 h-3" />
-                  Retry
-                </button>
+                <p className={`text-sm ${
+                  error === 'Please log in to view dashboard' 
+                    ? 'text-yellow-800' 
+                    : 'text-yellow-800'
+                }`}>
+                  {error === 'Please log in to view dashboard' 
+                    ? 'Authentication issue detected. Some features may not work properly.'
+                    : error
+                  }
+                </p>
+                {error !== 'Please log in to view dashboard' && (
+                  <button
+                    onClick={() => fetchDashboardStats(true)}
+                    className="mt-2 text-sm text-yellow-700 hover:text-yellow-800 font-medium inline-flex items-center"
+                  >
+                    <FaSync className="mr-1 w-3 h-3" />
+                    Retry
+                  </button>
+                )}
+                {error === 'Please log in to view dashboard' && (
+                  <button
+                    onClick={() => window.location.href = '/login'}
+                    className="mt-2 text-sm text-yellow-700 hover:text-yellow-800 font-medium inline-flex items-center"
+                  >
+                    Go to Login
+                  </button>
+                )}
               </div>
             </div>
           </div>

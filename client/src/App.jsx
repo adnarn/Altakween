@@ -101,145 +101,147 @@ import BookingsPage from './pages/Bookings'
 import ClientProfile from './pages/ClientProfile';
 import Reports from './pages/admin/Reports';
 import Categories from './components/admin/Categories';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="min-h-screen bg-background">
+    <Router>
+      <div className="min-h-screen bg-background">
           <Routes>
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
-            {/* Client Routes */}
-            <Route
-              path="/"
+          {/* Client Routes */}
+          <Route
+            path="/"
+            element={
+              <ClientLayout>
+                <Home />
+              </ClientLayout>
+            }
+          />
+          <Route
+            path="/services"
+            element={
+              <ClientLayout>
+                <Services />
+              </ClientLayout>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <ClientLayout>
+                <About />
+              </ClientLayout>
+            }
+          />
+          <Route
+            path="/contact"
+            element={
+              <ClientLayout>
+                <Contact />
+              </ClientLayout>
+            }
+          />
+          <Route
+              path="/package/:id"
               element={
                 <ClientLayout>
-                  <Home />
+                  <PackageDetails />
                 </ClientLayout>
               }
             />
-            <Route
-              path="/services"
+          <Route
+              path="/bookings"
               element={
                 <ClientLayout>
-                  <Services />
+                  <BookingsPage />
                 </ClientLayout>
               }
             />
-            <Route
-              path="/about"
+          <Route
+              path="/profile"
               element={
                 <ClientLayout>
-                  <About />
+                  <ClientProfile />
                 </ClientLayout>
               }
             />
-            <Route
-              path="/contact"
-              element={
-                <ClientLayout>
-                  <Contact />
-                </ClientLayout>
-              }
-            />
-            <Route
-                path="/package/:id"
-                element={
-                  <ClientLayout>
-                    <PackageDetails />
-                  </ClientLayout>
-                }
-              />
-            <Route
-                path="/bookings"
-                element={
-                  <ClientLayout>
-                    <BookingsPage />
-                  </ClientLayout>
-                }
-              />
-            <Route
-                path="/profile"
-                element={
-                  <ClientLayout>
-                    <ClientProfile />
-                  </ClientLayout>
-                }
-              />
 
-            {/* Admin Routes */}
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout>
-                    <AdminDashboard />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/reports"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout>
-                    <Reports />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
+          {/* Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <AdminDashboard />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/reports"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Reports />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
 
-            <Route
-              path="/admin/users"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout>
-                    <Users />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/packages"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout>
-                    <Packages />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/bookings"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout>
-                    <Bookings />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/categories"
-              element={
-                <ProtectedRoute requiredRole="admin">
-                  <AdminLayout>
-                    <Categories />
-                  </AdminLayout>
-                </ProtectedRoute>
-              }
-            />
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Users />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/packages"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Packages />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/bookings"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Bookings />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/categories"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminLayout>
+                  <Categories />
+                </AdminLayout>
+              </ProtectedRoute>
+            }
+          />
 
-            {/* Redirect unknown routes */}
-            {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
-          </Routes>
-        </div>
-      </Router>
-    </AuthProvider>
+          {/* Redirect unknown routes */}
+          {/* <Route path="*" element={<Navigate to="/" replace />} /> */}
+        </Routes>
+      </div>
+    </Router>
   )
 }
 

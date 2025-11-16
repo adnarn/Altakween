@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react"
-import { useApi } from "./ApiContext" // Import useApi to make API calls
+import axios from "axios"
 import { toast } from "react-toastify"
 
 export const AuthContext = createContext(null)
@@ -21,7 +21,8 @@ export const AuthProvider = ({ children }) => {
   const [userRole, setUserRole] = useState(null)
   const [loading, setLoading] = useState(true) // Initial loading state for checking local storage
   const [error, setError] = useState(null)
-  const { post } = useApi() // Use the post method from ApiContext
+  
+  const API_BASE_URL = "http://localhost:8081/api"
 
   // Get user role from current user
   const getUserRole = useCallback((user) => {
@@ -53,12 +54,12 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       try {
-        const response = await post("/auth/login", { email, password });
-        if (response.user && response.token) {
+        const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
+        if (response.data.user && response.data.token) {
           const userWithToken = { 
-            ...response.user, 
-            token: response.token,
-            role: response.user.role || 'user' // Ensure role is set, default to 'user'
+            ...response.data.user, 
+            token: response.data.token,
+            role: response.data.user.role || 'user' // Ensure role is set, default to 'user'
           };
           setCurrentUser(userWithToken);
           const role = getUserRole(userWithToken);
@@ -67,7 +68,7 @@ export const AuthProvider = ({ children }) => {
           toast.success("Login successful!");
           return role; // Return the user's role
         } else {
-          throw new Error(response.message || "Login failed.");
+          throw new Error(response.data.message || "Login failed.");
         }
       } catch (error) {
         console.error("Login error:", error);
@@ -78,7 +79,7 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
       }
     },
-    [post, getUserRole]
+    [getUserRole],
   );
 
   // Register function
@@ -87,12 +88,12 @@ export const AuthProvider = ({ children }) => {
       setLoading(true)
       setError(null)
       try {
-        const response = await post("/auth/register", userData)
-        if (response.user && response.token) {
+        const response = await axios.post(`${API_BASE_URL}/auth/register`, userData)
+        if (response.data.user && response.data.token) {
           const userWithToken = { 
-            ...response.user, 
-            token: response.token,
-            role: response.user.role || 'user' // Ensure role is set, default to 'user'
+            ...response.data.user, 
+            token: response.data.token,
+            role: response.data.user.role || 'user' // Ensure role is set, default to 'user'
           };
           setCurrentUser(userWithToken);
           const role = getUserRole(userWithToken);
@@ -101,7 +102,7 @@ export const AuthProvider = ({ children }) => {
           toast.success("Registration successful! You are now logged in.")
           return { success: true, role }
         } else {
-          throw new Error(response.message || "Registration failed.")
+          throw new Error(response.data.message || "Registration failed.")
         }
       } catch (err) {
         setError(err.message)
@@ -111,7 +112,7 @@ export const AuthProvider = ({ children }) => {
         setLoading(false)
       }
     },
-    [post, getUserRole],
+    [getUserRole],
   )
 
   // Logout function

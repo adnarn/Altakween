@@ -147,6 +147,8 @@
 
 
 import { createContext, useContext, useState, useCallback } from "react"
+import { useAuth } from "./AuthContext"
+import { toast } from "react-toastify"
 
 const ApiContext = createContext()
 
@@ -161,6 +163,7 @@ export const useApi = () => {
 export const ApiProvider = ({ children }) => {
   // const API_BASE_URL = "http://localhost:8081/api"
   const API_BASE_URL = "https://altakween-4nng.vercel.app/api"
+  const { logout } = useAuth()
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -202,6 +205,31 @@ export const ApiProvider = ({ children }) => {
 
       // Check if response is OK
       if (!response.ok) {
+        // Handle 401 Unauthorized - Token expired or invalid
+        if (response.status === 401) {
+          console.warn('🔒 Authentication failed - Token may be expired');
+          
+          // Show user-friendly toast notification
+          toast.error('Your session has expired. Please log in again.', {
+            position: "top-center",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            theme: "light",
+          });
+          
+          // Clear any stored auth data and logout user
+          localStorage.removeItem("altaqween_user");
+          logout();
+          
+          const authError = new Error('Your session has expired. Please log in again.');
+          authError.status = 401;
+          authError.isAuthError = true;
+          throw authError;
+        }
+        
         // Try to get error message from response
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         try {
@@ -252,7 +280,7 @@ export const ApiProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [API_BASE_URL]);
+  }, [API_BASE_URL, logout]);
 
   const get = useCallback((endpoint) => fetchData(endpoint, { method: "GET" }), [fetchData]);
   const post = useCallback((endpoint, body) => fetchData(endpoint, { method: "POST", body }), [fetchData]);
