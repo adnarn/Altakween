@@ -75,7 +75,6 @@ const Login = () => {
   return (
     <>
     <Navbar />
-    <PageLayout>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -250,7 +249,6 @@ const Login = () => {
           </div>
         </motion.div>
       </div>
-    </PageLayout>
     </>
   );
 };
