@@ -3,11 +3,12 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Lock, Eye, EyeOff, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import { useApi } from '../contexts/ApiContext';
 import PageLayout from '../components/PageLayout';
 import Navbar from '../components/Navbar';
 
 const ResetPassword = () => {
+  const { resetPassword } = useApi();
   const [formData, setFormData] = useState({ 
     token: '', 
     newPassword: '', 
@@ -67,10 +68,7 @@ const ResetPassword = () => {
 
     setIsLoading(true);
     try {
-      await axios.post('http://localhost:8081/api/auth/reset-password', {
-        token: formData.token,
-        newPassword: formData.newPassword
-      });
+      await resetPassword(formData.token, formData.newPassword);
 
       setPasswordReset(true);
       toast.success('Password reset successful! You can now login with your new password.');

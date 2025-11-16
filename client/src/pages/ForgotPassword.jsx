@@ -3,11 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
-import axios from 'axios';
+import { useApi } from '../contexts/ApiContext';
 import PageLayout from '../components/PageLayout';
 import Navbar from '../components/Navbar';
 
 const ForgotPassword = () => {
+  const { forgotPassword } = useApi();
   const [formData, setFormData] = useState({ email: '' });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -45,9 +46,7 @@ const ForgotPassword = () => {
 
     setIsLoading(true);
     try {
-      const response = await axios.post('http://localhost:8081/api/auth/forgot-password', {
-        email: formData.email
-      });
+      const response = await forgotPassword(formData.email);
 
       setResetToken(response.data.resetToken);
       setTokenSent(true);
