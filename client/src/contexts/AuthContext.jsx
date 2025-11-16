@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true) // Initial loading state for checking local storage
   const [error, setError] = useState(null)
   
-  const API_BASE_URL = "http://localhost:8081/api"
+  const API_BASE_URL = "https://altakween-4nng.vercel.app/api"
 
   // Get user role from current user
   const getUserRole = useCallback((user) => {
