@@ -5,6 +5,7 @@ const userSchema = mongoose.Schema(
     name: {
       type: String,
       required: [true, 'Name is required'],
+      unique: false,
     },
     password: {
       type: String,
@@ -50,6 +51,8 @@ const userSchema = mongoose.Schema(
     timestamps: true, // Automatically adds createdAt and updatedAt fields
   }
 );
+userSchema.index({ fullName: 1 }, { unique: false });
+
 
 const User =  mongoose.model('User', userSchema);
 module.exports = User
