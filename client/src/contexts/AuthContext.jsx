@@ -3,18 +3,9 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react"
 import axios from "axios"
 import { toast } from "react-toastify"
+import PropTypes from "prop-types"
 
 export const AuthContext = createContext(null)
-
-export const useAuth = () => {
-  const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider")
-  }
-  return context
-}
-
-import PropTypes from "prop-types";
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null)
@@ -22,6 +13,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true) // Initial loading state for checking local storage
   const [error, setError] = useState(null)
   
+  // const API_BASE_URL = "http://localhost:8081/api"
   const API_BASE_URL = "https://altakween-4nng.vercel.app/api"
 
   // Get user role from current user
@@ -61,10 +53,15 @@ export const AuthProvider = ({ children }) => {
             token: response.data.token,
             role: response.data.user.role || 'user' // Ensure role is set, default to 'user'
           };
+          
           setCurrentUser(userWithToken);
           const role = getUserRole(userWithToken);
           setUserRole(role);
           localStorage.setItem("altaqween_user", JSON.stringify(userWithToken));
+          
+          // Set default auth header for future requests
+          axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+          
           toast.success("Login successful!");
           return role; // Return the user's role
         } else {
@@ -73,6 +70,7 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         console.error("Login error:", error);
         const errorMessage = error.response?.data?.message || error.message || "Login failed";
+        setError(errorMessage);
         toast.error(errorMessage);
         throw error;
       } finally {
@@ -85,31 +83,55 @@ export const AuthProvider = ({ children }) => {
   // Register function
   const register = useCallback(
     async (userData) => {
-      setLoading(true)
-      setError(null)
+      setLoading(true);
+      setError(null);
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/register`, userData)
-        if (response.data.user && response.data.token) {
-          const userWithToken = { 
-            ...response.data.user, 
-            token: response.data.token,
-            role: response.data.user.role || 'user' // Ensure role is set, default to 'user'
-          };
-          setCurrentUser(userWithToken);
-          const role = getUserRole(userWithToken);
-          setUserRole(role);
-          localStorage.setItem("altaqween_user", JSON.stringify(userWithToken));
-          toast.success("Registration successful! You are now logged in.")
-          return { success: true, role }
-        } else {
-          throw new Error(response.data.message || "Registration failed.")
+        const response = await axios.post(`${API_BASE_URL}/auth/register`, userData, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          validateStatus: (status) => status < 500, // Don't throw for 4xx errors
+        });
+        
+        if (response.status === 400) {
+          // Handle validation errors
+          const errorMessage = response.data?.message || 'Validation failed';
+          const validationErrors = response.data?.errors || {};
+          
+          const formattedErrors = Object.entries(validationErrors)
+            .map(([field, message]) => `${field}: ${message}`)
+            .join('\n');
+            
+          throw new Error(formattedErrors || errorMessage);
         }
+        
+        if (!response.data.user || !response.data.token) {
+          throw new Error(response.data?.message || 'Registration failed: Invalid server response');
+        }
+        
+        const userWithToken = { 
+          ...response.data.user, 
+          token: response.data.token,
+          role: response.data.user.role || 'user' // Ensure role is set, default to 'user'
+        };
+        
+        setCurrentUser(userWithToken);
+        const role = getUserRole(userWithToken);
+        setUserRole(role);
+        localStorage.setItem("altaqween_user", JSON.stringify(userWithToken));
+        
+        // Set default auth header for future requests
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+        
+        toast.success("Registration successful! You are now logged in.");
+        return { success: true, role };
       } catch (err) {
-        setError(err.message)
-        toast.error(err.message || "Registration failed.")
-        return { success: false, message: err.message }
+        const errorMessage = err.response?.data?.message || err.message || "Registration failed.";
+        setError(errorMessage);
+        toast.error(errorMessage);
+        return { success: false, message: errorMessage };
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     },
     [getUserRole],
@@ -117,10 +139,11 @@ export const AuthProvider = ({ children }) => {
 
   // Logout function
   const logout = useCallback(() => {
-    setCurrentUser(null)
-    setUserRole(null)
-    localStorage.removeItem("altaqween_user")
-    toast.info("You have been logged out.")
+    setCurrentUser(null);
+    setUserRole(null);
+    localStorage.removeItem("altaqween_user");
+    delete axios.defaults.headers.common['Authorization'];
+    toast.info("You have been logged out.");
   }, [])
 
   const value = {
@@ -136,6 +159,15 @@ export const AuthProvider = ({ children }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
+
+// Custom hook to use the auth context
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
 
 AuthProvider.propTypes = {
   children: PropTypes.node.isRequired,
